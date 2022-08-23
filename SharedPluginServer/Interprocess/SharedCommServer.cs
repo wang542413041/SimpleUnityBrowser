@@ -16,35 +16,39 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
 
         //EventPacket _lastPacket = null;
 
+        // 待发送事件队列
         Queue<EventPacket> _packetsToSend;
 
-
+        // 是否正在写数据
         bool _isWrite = false;
 
+        // 创建共享内存通道
         public SharedCommServer(bool write):base()
         {
-            _isWrite = write;
-            _packetsToSend = new Queue<EventPacket>();
+            _isWrite = write; // 标记写状态
+            _packetsToSend = new Queue<EventPacket>(); // 创建事件队列
         }
 
+        // 初始化通道
         public  void InitComm(int size, string filename)
         {
-            base.Init(size, filename);
-            WriteStop();
+            base.Init(size, filename); // 初始化sharedMemory
+            WriteStop(); // 
         }
 
+        // 检查状态
         private bool CheckIfReady()
         {
-            byte[] arr = ReadBytes();
-            if (arr != null)
+            byte[] arr = ReadBytes();  // 读取内存
+            if (arr != null) // 内存不为空
             {
-                try
+                try // 尝试取内存
                 {
-                    MemoryStream mstr = new MemoryStream(arr);
-                    BinaryFormatter bf = new BinaryFormatter();
-                    EventPacket ep = bf.Deserialize(mstr) as EventPacket;
+                    MemoryStream mstr = new MemoryStream(arr); // 转化为MemoryStream流
+                    BinaryFormatter bf = new BinaryFormatter(); // 转化为BinaryFormatter 流
+                    EventPacket ep = bf.Deserialize(mstr) as EventPacket; // 转化为事件
 
-                    if (ep.Type == BrowserEventType.StopPacket)
+                    if (ep.Type == BrowserEventType.StopPacket) // 判断事件状态
                         return true;
                     else
                         return false;
@@ -58,15 +62,16 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
         }
 
 
+        // 获取消息
         public EventPacket GetMessage()
         {
-            if (_isWrite)
+            if (_isWrite) // 如果是写，则返回空
                 return null;
 
-            byte[] arr = ReadBytes();
+            byte[] arr = ReadBytes(); // 读取消息
           //  EventPacket ret = null;
 
-            if(arr!=null)
+            if(arr!=null) // 消息不为空
             {
                 try
                 {
@@ -78,8 +83,8 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
                     {
                         //_lastPacket = ep;
                         //log.Info("_____RETURNING PACKET:" + ep.Type.ToString());
-                        WriteStop();
-                        return ep;
+                        WriteStop(); // 停止写事件
+                        return ep; // 反馈事件
                     }
                     else
                     {
@@ -96,9 +101,10 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             return null;
         }
 
+        // 停止写
         private void WriteStop()
         {
-            EventPacket e = new EventPacket
+            EventPacket e = new EventPacket // 创建事件
             {
                 Type = BrowserEventType.StopPacket
             };
@@ -106,24 +112,25 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             MemoryStream mstr = new MemoryStream();
             BinaryFormatter bf = new BinaryFormatter();
             bf.Serialize(mstr, e);
-            byte[] b = mstr.GetBuffer();
-            WriteBytes(b);
+            byte[] b = mstr.GetBuffer(); // 转化为buffer
+            WriteBytes(b); // 写入内存
         }
 
+        // 写入消息
         public void WriteMessage(EventPacket ep)
         {
 
-            bool sent = false;
-            while(!sent)
+            bool sent = false; // 是否已发送
+            while(!sent) // 当状态为未发送
             {
-                if(CheckIfReady())
+                if(CheckIfReady()) // 检查状态
                 {
                     MemoryStream mstr = new MemoryStream();
                     BinaryFormatter bf = new BinaryFormatter();
                     bf.Serialize(mstr, ep);
                     byte[] b = mstr.GetBuffer();
-                    WriteBytes(b);
-                    sent = true;
+                    WriteBytes(b); // 吸入消息
+                    sent = true; // 设置状态已发送
                 }
             }
            /* if(_isWrite)
@@ -132,19 +139,20 @@ log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().Dec
             }*/
         }
 
+        // 推消息
         public void PushMessages()
         {
-            if(_packetsToSend.Count!=0)
+            if(_packetsToSend.Count!=0) // 如果消息队列不为空
             {
-                if(CheckIfReady())
+                if(CheckIfReady()) // 检查是否可以发送消息
                 {
-                    EventPacket ep = _packetsToSend.Dequeue();
+                    EventPacket ep = _packetsToSend.Dequeue(); // 获取最上层数据
 
                     MemoryStream mstr = new MemoryStream();
                     BinaryFormatter bf = new BinaryFormatter();
                     bf.Serialize(mstr, ep);
                     byte[] b = mstr.GetBuffer();
-                    WriteBytes(b);
+                    WriteBytes(b); // 包装并发送消息
                 }
             }
         }
