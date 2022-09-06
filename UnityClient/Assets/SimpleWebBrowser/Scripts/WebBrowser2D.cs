@@ -13,47 +13,48 @@ namespace SimpleWebBrowser
 
 
 
+    // 自定义2D网页界面
     public class WebBrowser2D : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler,
         IPointerUpHandler
     {
 
         #region General
 
-        [Header("General settings")] public int Width = 1024;
+        [Header("General settings")] public int Width = 1024; // 宽高
 
         public int Height = 768;
 
-        public string MemoryFile = "MainSharedMem";
+        public string MemoryFile = "MainSharedMem";// 内存交换文件
 
-        public bool RandomMemoryFile = true;
+        public bool RandomMemoryFile = true; // 随机内存文件
 
-        public string InitialURL = "http://www.google.com";
+        public string InitialURL = "http://www.google.com"; // 初始化网址
 
-        public bool EnableWebRTC = false;
+        public bool EnableWebRTC = false; // 是否允许webRTC
 
         [Header("Testing")]
-        public bool EnableGPU = false;
+        public bool EnableGPU = false; // 是否允许GPU加速
 
         [Multiline]
-        public string JSInitializationCode = "";
+        public string JSInitializationCode = ""; // JS初始化代码
 
         #endregion
 
 
         [Header("2D setup")]
         [SerializeField]
-        public RawImage Browser2D = null;
-
+        public RawImage Browser2D = null; // 2D浏览器承载视图RawImage，可以进行纹理绑定
+ 
 
         [Header("UI settings")]
         [SerializeField]
-        public BrowserUI mainUIPanel;
+        public BrowserUI mainUIPanel; // 主要UI面板
 
-        public bool KeepUIVisible = false;
+        public bool KeepUIVisible = false; // 是否保持UI可见
 
         [Header("Dialog settings")]
         [SerializeField]
-        public GameObject DialogPanel;
+        public GameObject DialogPanel; // 弹窗面板
         [SerializeField]
         public Text DialogText;
         [SerializeField]
@@ -71,8 +72,8 @@ namespace SimpleWebBrowser
         private string _dialogPrompt = "";
         private DialogEventType _dialogEventType;
         //query - threading
-        private bool _startQuery = false;
-        private string _jsQueryString = "";
+        private bool _startQuery = false; // 是否开执行JS
+        private string _jsQueryString = ""; // JS 执行代码
 
         //status - threading
         private bool _setUrl = false;
@@ -91,23 +92,23 @@ namespace SimpleWebBrowser
         #endregion
 
 
-        private Material _mainMaterial;
+        private Material _mainMaterial; // 材质，主要材质
 
 
 
 
 
-        private BrowserEngine _mainEngine;
+        private BrowserEngine _mainEngine; // 渲染引擎
 
 
 
-        private bool _focused = false;
+        private bool _focused = false; // 是否聚焦
 
 
-        private int posX = 0;
-        private int posY = 0;
+        private int posX = 0; // 横坐标
+        private int posY = 0; // 竖坐标
 
-        private Camera _mainCamera;
+        private Camera _mainCamera; // 相机
 
         #region Initialization
 
@@ -153,13 +154,13 @@ namespace SimpleWebBrowser
 
         void Start()
         {
-            InitPrefabLinks();
-            mainUIPanel.InitPrefabLinks();
+            InitPrefabLinks(); // 初始化当前UI
+            mainUIPanel.InitPrefabLinks(); // 初始化mainUI 面板
 
-            _mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>();
+            _mainCamera = GameObject.Find("Main Camera").GetComponent<Camera>(); // 绑定主相机
 
-            Browser2D.texture = _mainEngine.BrowserTexture;
-            Browser2D.uvRect = new Rect(0f, 0f, 1f, -1f);
+            Browser2D.texture = _mainEngine.BrowserTexture; // 绑定RawImage和引擎的texture2d
+            Browser2D.uvRect = new Rect(0f, 0f, 1f, -1f); // 设置rawimage展示
 
 
 
